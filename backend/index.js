@@ -275,10 +275,10 @@ app.post('/api/optimize', protect, async (req, res) => {
         suggestions.push("Pre-heat battery at charging station if possible.");
     }
 
-    // Driver Break Logic (Suggest break every 100km)
-    const numBreaks = Math.floor(distanceKm / 100);
+    // Driver Break Logic (Suggest break every 30km)
+    const numBreaks = Math.floor(distanceKm / 30);
     if (numBreaks > 0) {
-        suggestions.push(`Safety Alert: This is a long trip (${distanceKm.toFixed(0)} km). Please take at least ${numBreaks} short break(s) every 100km to stay alert.`);
+        suggestions.push(`Safety Alert: This is a long trip (${distanceKm.toFixed(0)} km). Please take at least ${numBreaks} short break(s) every 30km to stay alert.`);
     }
 
     const results = {

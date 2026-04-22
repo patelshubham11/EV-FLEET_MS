@@ -122,7 +122,7 @@ export default function Dashboard({ token, onLogout }) {
           setSimBattery(prev => Math.max(0, prev - drainPercent));
           setSimDistance(prev => {
             const newDist = prev + d;
-            if (Math.floor(newDist / 100) > Math.floor(lastBreakDist / 100)) {
+            if (Math.floor(newDist / 30) > Math.floor(lastBreakDist / 30)) {
                 setSimPaused(true);
                 setShowBreakModal(true);
                 setLastBreakDist(newDist);
@@ -288,7 +288,11 @@ export default function Dashboard({ token, onLogout }) {
                         <strong>{result.estimatedTime}</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
-                        <span style={{ color: 'var(--text-muted)' }}>🔋 Remaining SoC</span>
+                        <span style={{ color: 'var(--text-muted)' }}>🔌 Starting SoC</span>
+                        <strong>{inputs?.batteryPercentage}%</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>🔋 Arrival SoC</span>
                         <strong style={{ color: parseFloat(result.remainingBattery) < 20 ? 'var(--error)' : 'var(--primary)' }}>{result.remainingBattery}</strong>
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
@@ -390,7 +394,7 @@ export default function Dashboard({ token, onLogout }) {
               {result && !result.rangeError && (
                 <div className="absolute bottom-6 left-6 right-6 z-[2000]">
                   {!simActive ? (
-                    <button onClick={() => { setSimPosIndex(0); setSimDistance(0); setSimActive(true); setSimPaused(false); }} className="py-5 w-full text-xl shadow-2xl animate-pulse-slow">
+                    <button onClick={() => { setSimPosIndex(0); setSimDistance(0); setSimBattery(parseFloat(inputs?.batteryPercentage) || 100); setSimActive(true); setSimPaused(false); }} className="py-5 w-full text-xl shadow-2xl animate-pulse-slow">
                       🚀 Initialize Active Simulation
                     </button>
                   ) : (
@@ -423,7 +427,7 @@ export default function Dashboard({ token, onLogout }) {
           <div className="glass-panel p-10 max-w-md text-center border-primary shadow-2xl">
             <div className="text-6xl mb-6">☕</div>
             <h2 className="text-primary text-3xl mb-2">Mandatory Break</h2>
-            <p className="text-muted mb-10">You've covered 100km. Federal safety regulations require a 15-minute rest stop.</p>
+            <p className="text-muted mb-10">You've covered 30km. Safety regulations require a short rest stop to maintain peak concentration.</p>
             <div className="flex flex-col gap-4">
               <button onClick={() => { setBreaksTaken(p=>p+1); setShowBreakModal(false); setSimPaused(false); }} className="py-4 text-lg">Acknowledge & Rest</button>
               <button onClick={() => { setBreaksSkipped(p=>p+1); setShowBreakModal(false); setSimPaused(false); }} className="btn-secondary py-3 text-danger">Skip (Security Flagged)</button>
