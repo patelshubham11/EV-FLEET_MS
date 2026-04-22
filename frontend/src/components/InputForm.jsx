@@ -34,94 +34,65 @@ export default function InputForm({ onSubmit, loading, preFillModel, preFillYear
 
   return (
     <div className="glass-panel animate-slide-up">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="bg-primary-glow p-2 rounded-lg text-xl">📋</div>
-        <h2 className="m-0 text-xl">Trip <span className="text-primary">Parameters</span></h2>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '1.5rem' }}>📋</div>
+        <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Trip <span className="accent-gradient">Parameters</span></h2>
       </div>
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-        <div className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
           <div>
             <label>Vehicle Model {preFillModel && '🔒'}</label>
-            <input 
-              name="vehicleModel" 
-              value={formData.vehicleModel} 
-              onChange={handleChange} 
-              required 
-              placeholder="e.g. Tesla Semi" 
-              disabled={!!preFillModel}
-              style={preFillModel ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-            />
+            <input name="vehicleModel" value={formData.vehicleModel} onChange={handleChange} required placeholder="e.g. Tata Ace EV" disabled={!!preFillModel} style={preFillModel ? { opacity: 0.5, cursor: 'not-allowed' } : {}} />
           </div>
-
           <div>
             <label>Mfg. Date {preFillModel && '🔒'}</label>
-            <input 
-              name="year" 
-              type="month" 
-              value={formData.year} 
-              onChange={handleChange} 
-              required 
-              disabled={!!preFillModel}
-              style={preFillModel ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-            />
+            <input name="year" type="month" value={formData.year} onChange={handleChange} required disabled={!!preFillModel} style={preFillModel ? { opacity: 0.5, cursor: 'not-allowed' } : {}} />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
           <div>
             <label>Category {preFillType && '🔒'}</label>
-            <select 
-              name="vehicleType" 
-              value={formData.vehicleType} 
-              onChange={handleChange}
-              disabled={!!preFillType}
-              style={preFillType ? { opacity: 0.6, cursor: 'not-allowed' } : {}}
-            >
+            <select name="vehicleType" value={formData.vehicleType} onChange={handleChange} disabled={!!preFillType} style={preFillType ? { opacity: 0.5, cursor: 'not-allowed' } : {}}>
               <option value="Van">Electric Van</option>
               <option value="Truck">Electric Truck</option>
               <option value="Car">Electric Car</option>
             </select>
           </div>
-
           <div>
-            <label>Current SoC (%)</label>
+            <label>Battery SoC (%)</label>
             <input name="batteryPercentage" type="number" min="1" max="100" value={formData.batteryPercentage} onChange={handleChange} required />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
           <div>
             <label>Origin City</label>
-            <input name="pickupLocation" value={formData.pickupLocation} onChange={handleChange} required placeholder="e.g. San Francisco" />
+            <input name="pickupLocation" value={formData.pickupLocation} onChange={handleChange} required placeholder="e.g. Delhi" />
           </div>
-
           <div>
             <label>Destination</label>
-            <input name="dropLocation" value={formData.dropLocation} onChange={handleChange} required placeholder="e.g. Los Angeles" />
+            <input name="dropLocation" value={formData.dropLocation} onChange={handleChange} required placeholder="e.g. Mumbai" />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
           <div>
             <label>Payload (kg)</label>
             <input name="loadWeight" type="number" min="0" value={formData.loadWeight} onChange={handleChange} required />
           </div>
-
           <div>
-            <label>External Temp (°C)</label>
+            <label>Ambient Temp (°C)</label>
             <input name="temperature" type="number" value={formData.temperature} onChange={handleChange} required placeholder="25" />
           </div>
         </div>
 
-        <button type="submit" disabled={loading} className="mt-4 py-4 w-full">
-          {loading ? (
-            <span className="animate-pulse">Analyzing Optimal Route...</span>
-          ) : (
-            <><span>⚡</span> Calculate Optimization</>
-          )}
+        <button type="submit" disabled={loading} style={{ marginTop: '0.5rem', width: '100%', padding: '1rem' }}>
+          {loading ? '⏳ Analyzing Route...' : '⚡ Calculate Optimization'}
         </button>
       </form>
     </div>
   )
 }
+

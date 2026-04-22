@@ -53,52 +53,31 @@ export default function VehicleRegistration({ onUpdate }) {
 
   return (
     <div className="glass-panel mb-8 animate-slide-up">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="bg-secondary-glow p-2 rounded-lg text-xl">🚛</div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ fontSize: '1.5rem' }}>🚛</div>
         <div>
-          <h2 className="m-0 text-xl accent-gradient">Vehicle Profile</h2>
-          <p className="text-muted text-xs">Configure your primary vehicle for faster route calculations.</p>
+          <h2 style={{ margin: 0, fontSize: '1.15rem' }} className="accent-gradient">Vehicle Profile</h2>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>Save your vehicle to auto-fill trip forms.</p>
         </div>
       </div>
-      
-      <form onSubmit={handleSubmit} className="flex flex-col gap-2 mt-6">
-        <div className="grid grid-cols-2 gap-6">
+
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
           <div>
             <label>Model Name</label>
-            <input 
-              name="model" 
-              value={vehicle.model} 
-              onChange={handleChange} 
-              required 
-              placeholder="e.g. Tata Ace EV" 
-            />
+            <input name="model" value={vehicle.model} onChange={handleChange} required placeholder="e.g. Tata Ace EV" />
           </div>
-
           <div>
             <label>Purchase Date</label>
-            <input 
-              name="purchaseDate" 
-              type="month" 
-              value={vehicle.purchaseDate} 
-              onChange={handleChange} 
-              required 
-            />
+            <input name="purchaseDate" type="month" value={vehicle.purchaseDate} onChange={handleChange} required />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
           <div>
             <label>Battery Capacity (kWh)</label>
-            <input 
-              name="batteryCapacity" 
-              type="number" 
-              value={vehicle.batteryCapacity} 
-              onChange={handleChange} 
-              required 
-              placeholder="e.g. 145" 
-            />
+            <input name="batteryCapacity" type="number" value={vehicle.batteryCapacity} onChange={handleChange} required placeholder="e.g. 145" />
           </div>
-
           <div>
             <label>Vehicle Category</label>
             <select name="vehicleType" value={vehicle.vehicleType} onChange={handleChange}>
@@ -109,21 +88,16 @@ export default function VehicleRegistration({ onUpdate }) {
           </div>
         </div>
 
-        <div className="mt-4">
-          <button type="submit" disabled={loading} className="w-full py-4">
-            {loading ? (
-              <span className="animate-pulse">Saving Profile...</span>
-            ) : (
-              'Save Configuration'
-            )}
-          </button>
-          {message && (
-            <p className={`mt-3 text-center text-sm font-medium ${message.includes('success') ? 'text-success' : 'text-danger'}`}>
-              {message.includes('success') ? '✅ ' : '❌ '} {message}
-            </p>
-          )}
-        </div>
+        <button type="submit" disabled={loading} style={{ marginTop: '0.5rem', width: '100%', padding: '1rem' }}>
+          {loading ? '⏳ Saving Profile...' : '💾 Save Vehicle Configuration'}
+        </button>
+        {message && (
+          <p style={{ textAlign: 'center', fontSize: '0.85rem', color: message.includes('success') ? 'var(--primary)' : 'var(--error)', margin: '0.25rem 0 0' }}>
+            {message.includes('success') ? '✅ ' : '❌ '}{message}
+          </p>
+        )}
       </form>
     </div>
   )
 }
+

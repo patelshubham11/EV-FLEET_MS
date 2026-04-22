@@ -267,23 +267,72 @@ export default function Dashboard({ token, onLogout }) {
               </div>
             )}
             
-            {result && !result.rangeError && (
-              <div className="glass-panel">
-                <h3 className="mb-4 text-sm uppercase tracking-wider text-muted">Trip Summary</h3>
-                <div className="flex flex-col gap-3">
-                  <div className="flex justify-between text-sm">
-                    <span>Estimated Distance</span>
-                    <span className="font-bold">{result.totalDistance?.toFixed(1)} km</span>
+            {result && (
+              <div className="glass-panel animate-slide-up">
+                {result.rangeError ? (
+                  <div style={{ color: 'var(--error)', fontSize: '0.9rem', lineHeight: 1.6 }}>
+                    <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>🚨</div>
+                    <strong>Range Error</strong>
+                    <p style={{ marginTop: '0.5rem', color: 'var(--text-muted)' }}>{result.rangeError}</p>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Stops Required</span>
-                    <span className="font-bold">{result.chargingStops?.length || 0}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Energy Required</span>
-                    <span className="font-bold">{(result.totalConsumption || 0).toFixed(1)} kWh</span>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '1rem' }}>Trip Summary</h3>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '1.25rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>📍 Distance</span>
+                        <strong>{result.distance}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>⏱ ETA</span>
+                        <strong>{result.estimatedTime}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>🔋 Remaining SoC</span>
+                        <strong style={{ color: parseFloat(result.remainingBattery) < 20 ? 'var(--error)' : 'var(--primary)' }}>{result.remainingBattery}</strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.88rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>⚡ Charging Stops</span>
+                        <strong>{result.chargingStops?.length || 0}</strong>
+                      </div>
+                    </div>
+
+                    {result.warnings?.length > 0 && (
+                      <div style={{ background: 'hsla(38,92%,50%,0.1)', border: '1px solid hsla(38,92%,50%,0.25)', borderRadius: 'var(--radius-md)', padding: '0.75rem', marginBottom: '1rem' }}>
+                        {result.warnings.map((w, i) => <p key={i} style={{ fontSize: '0.78rem', color: 'var(--warning)', margin: '0 0 0.25rem' }}>⚠️ {w}</p>)}
+                      </div>
+                    )}
+
+                    {result.chargingStops?.length > 0 && (
+                      <>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '1rem 0 0.75rem' }}>
+                          <h3 style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', margin: 0 }}>⚡ Charging Stations</h3>
+                          <span style={{ fontSize: '0.65rem', color: 'var(--text-dim)' }}>{result.chargingStops.length} Found</span>
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.5rem' }} className="custom-scrollbar">
+                          {result.chargingStops.map((s, i) => (
+                            <div key={i} style={{ background: 'hsla(156,72%,45%,0.05)', border: '1px solid hsla(156,72%,45%,0.15)', borderRadius: 'var(--radius-md)', padding: '0.75rem' }}>
+                              <div style={{ fontWeight: 700, fontSize: '0.85rem', marginBottom: '0.2rem', color: 'var(--text-main)' }}>{s.name}</div>
+                              <div style={{ fontSize: '0.75rem', color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                                <span>🔌 {s.type}</span>
+                              </div>
+                              {s.location && <div style={{ fontSize: '0.7rem', color: 'var(--text-dim)', marginTop: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{s.location}</div>}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                    
+                    <button 
+                      onClick={() => { setResult(null); setViewingHistoryItem(false); setSimActive(false); }} 
+                      style={{ marginTop: '1.25rem', width: '100%', background: 'transparent', border: '1px solid var(--glass-border)', color: 'var(--text-dim)', fontSize: '0.75rem', padding: '0.65rem' }}
+                      onMouseOver={(e) => e.target.style.color = 'var(--error)'}
+                      onMouseOut={(e) => e.target.style.color = 'var(--text-dim)'}
+                    >
+                      Clear Optimization Data
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </aside>
@@ -323,14 +372,29 @@ export default function Dashboard({ token, onLogout }) {
                 )}
               </MapContainer>
 
+              {simActive && (
+                <div className="absolute top-6 left-6 z-[2000] flex flex-col gap-3 pointer-events-none">
+                  <div className="glass-panel py-3 px-6 shadow-xl border-white/10" style={{ pointerEvents: 'auto', background: 'rgba(15, 23, 42, 0.8)' }}>
+                    <label className="text-[10px] uppercase tracking-widest text-dim font-bold mb-1 block">Live Distance</label>
+                    <p className="text-xl font-bold m-0 text-primary">{simDistance.toFixed(1)} <span className="text-xs font-normal text-muted">km</span></p>
+                  </div>
+                  <div className="glass-panel py-3 px-6 shadow-xl border-white/10" style={{ pointerEvents: 'auto', background: 'rgba(15, 23, 42, 0.8)' }}>
+                    <label className="text-[10px] uppercase tracking-widest text-dim font-bold mb-1 block">Efficiency</label>
+                    <p className="text-xl font-bold m-0 text-main">
+                      {((parseFloat(inputs?.loadWeight)/1000) * 0.1 + (parseFloat(inputs?.loadWeight) > 6000 ? 0.4 : 0) + 1).toFixed(1)}<span className="text-xs font-normal text-muted">x</span>
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {result && !result.rangeError && (
-                <div className="absolute bottom-10 left-10 right-10 z-[2000]">
+                <div className="absolute bottom-6 left-6 right-6 z-[2000]">
                   {!simActive ? (
                     <button onClick={() => { setSimPosIndex(0); setSimDistance(0); setSimActive(true); setSimPaused(false); }} className="py-5 w-full text-xl shadow-2xl animate-pulse-slow">
                       🚀 Initialize Active Simulation
                     </button>
                   ) : (
-                    <div className="glass-panel flex items-center gap-10 py-5 px-10 shadow-2xl border-white/20" style={{ borderRadius: 'var(--radius-lg)', background: 'rgba(15, 23, 42, 0.9)' }}>
+                    <div className="glass-panel flex items-center gap-10 py-4 px-10 shadow-2xl border-white/20" style={{ borderRadius: 'var(--radius-lg)', background: 'rgba(15, 23, 42, 0.9)' }}>
                       <button onClick={() => setSimPaused(!simPaused)} className="text-3xl p-0 bg-transparent shadow-none w-auto hover:scale-110 transition-transform">
                         {simPaused ? '▶️' : '⏸️'}
                       </button>
@@ -350,27 +414,6 @@ export default function Dashboard({ token, onLogout }) {
                 </div>
               )}
             </div>
-
-            {simActive && (
-              <div className="grid grid-cols-3 gap-6 animate-slide-up">
-                <div className="glass-panel text-center py-6">
-                  <label className="mb-2">Total Distance</label>
-                  <p className="text-3xl font-bold m-0">{simDistance.toFixed(1)} <span className="text-sm font-normal text-muted">km</span></p>
-                </div>
-                <div className="glass-panel text-center py-6">
-                  <label className="mb-2">System Load</label>
-                  <p className={`text-2xl font-bold m-0 ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-success'}`}>
-                    {parseFloat(inputs?.loadWeight) > 6000 ? 'OVERLOAD' : 'OPTIMAL'}
-                  </p>
-                </div>
-                <div className="glass-panel text-center py-6">
-                  <label className="mb-2">Efficiency Multiplier</label>
-                  <p className={`text-3xl font-bold m-0 ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-main'}`}>
-                    {((parseFloat(inputs?.loadWeight)/1000) * 0.1 + (parseFloat(inputs?.loadWeight) > 6000 ? 0.4 : 0) + 1).toFixed(1)}<span className="text-sm font-normal text-muted">x</span>
-                  </p>
-                </div>
-              </div>
-            )}
           </main>
         </div>
       )}
