@@ -18,30 +18,35 @@ function App() {
 
   return (
     <Router>
-      <div className="app-container">
-        <header className="flex justify-between items-center mb-6">
-          <h1 className="text-gradient">Smart EV Fleet</h1>
+      <div className="app-container animate-fade-in">
+        <header className="flex justify-between items-center mb-8 glass-panel py-4 px-8" style={{ borderRadius: 'var(--radius-lg)' }}>
+          <div className="flex items-center gap-3">
+            <div className="bg-primary" style={{ width: '40px', height: '40px', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontSize: '1.5rem' }}>⚡</div>
+            <h1 className="text-gradient m-0">EV Fleet <span className="accent-gradient">Studio</span></h1>
+          </div>
           {token && (
-            <button onClick={handleLogout} style={{ width: 'auto' }}>
-              Logout
+            <button onClick={handleLogout} className="btn-secondary" style={{ padding: '0.5rem 1.5rem', fontSize: '0.85rem' }}>
+              Sign Out
             </button>
           )}
         </header>
 
-        <Routes>
-          <Route 
-            path="/login" 
-            element={!token ? <Auth onLogin={handleLogin} /> : <Navigate to="/dashboard" />} 
-          />
-          <Route 
-            path="/dashboard" 
-            element={token ? <Dashboard /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="*" 
-            element={<Navigate to={token ? "/dashboard" : "/login"} />} 
-          />
-        </Routes>
+        <main>
+          <Routes>
+            <Route 
+              path="/login" 
+              element={!token ? <Auth onLogin={handleLogin} /> : <Navigate to="/dashboard" />} 
+            />
+            <Route 
+              path="/dashboard" 
+              element={token ? <Dashboard token={token} onLogout={handleLogout} /> : <Navigate to="/login" />} 
+            />
+            <Route 
+              path="*" 
+              element={<Navigate to={token ? "/dashboard" : "/login"} />} 
+            />
+          </Routes>
+        </main>
       </div>
     </Router>
   )

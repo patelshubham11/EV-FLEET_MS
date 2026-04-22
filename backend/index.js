@@ -70,13 +70,21 @@ const protect = async (req, res, next) => {
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     try {
       token = req.headers.authorization.split(' ')[1];
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secret123');
+      console.log("Protecting route. Token received:", token.substring(0, 10) + "...");
+      const secret = process.env.JWT_SECRET || 'secret123';
+      const decoded = jwt.verify(token, secret);
       req.user = await User.findById(decoded.id).select('-password');
+      if (!req.user) {
+        console.log("User not found for token:", decoded.id);
+        return res.status(401).json({ error: 'User not found' });
+      }
       next();
     } catch (error) {
+      console.error("JWT verification failed:", error.message);
       res.status(401).json({ error: 'Not authorized, token failed' });
     }
   } else {
+    console.log("No authorization header or not Bearer");
     res.status(401).json({ error: 'Not authorized, no token' });
   }
 };

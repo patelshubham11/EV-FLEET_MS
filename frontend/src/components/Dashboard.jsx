@@ -27,7 +27,7 @@ function ChangeView({ center, zoom, bounds }) {
   return null;
 }
 
-export default function Dashboard() {
+export default function Dashboard({ token, onLogout }) {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [inputs, setInputs] = useState(null)
@@ -58,8 +58,6 @@ export default function Dashboard() {
   const [overspeedingCount, setOverspeedingCount] = useState(0)
   const [breaksTaken, setBreaksTaken] = useState(0)
   const [breaksSkipped, setBreaksSkipped] = useState(0)
-
-  const token = localStorage.getItem('token')
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -184,6 +182,7 @@ export default function Dashboard() {
     setInputs(formData);
     setViolations([]); setOverspeedingCount(0); setBreaksTaken(0); setBreaksSkipped(0); setLastBreakDist(0);
     try {
+      console.log("Optimizing route with token:", token ? token.substring(0, 10) + "..." : "NULL/UNDEFINED");
       const res = await axios.post('http://localhost:5000/api/optimize', formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
@@ -195,34 +194,52 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="app-container">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-gradient m-0">Fleet Optimization Studio</h1>
-        <div className="flex gap-2">
-          <button onClick={() => { setShowHistory(false); setShowVehicleReg(!showVehicleReg); }} className="btn-primary" style={{ width: 'auto' }}>Profile</button>
-          <button onClick={() => { setShowVehicleReg(false); setViewingHistoryItem(false); setShowHistory(!showHistory); }} className="btn-secondary" style={{ width: 'auto' }}>{showHistory ? 'Back' : 'History'}</button>
+    <div className="animate-fade-in">
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl m-0">Control <span className="accent-gradient">Center</span></h1>
+          <p className="text-muted text-sm mt-1">Manage and optimize your electric vehicle fleet in real-time.</p>
+        </div>
+        <div className="flex gap-4">
+          <button onClick={() => { setShowHistory(false); setShowVehicleReg(!showVehicleReg); }} className="btn-secondary">
+            {showVehicleReg ? 'Close Profile' : 'Vehicle Profile'}
+          </button>
+          <button onClick={() => { setShowVehicleReg(false); setViewingHistoryItem(false); setShowHistory(!showHistory); }} className="btn-secondary">
+            {showHistory ? 'Back to Dashboard' : 'Performance History'}
+          </button>
         </div>
       </div>
 
+      {showVehicleReg && <VehicleRegistration onUpdate={(v) => { setRegisteredVehicle(v); setShowVehicleReg(false); }} />}
+
       {showHistory ? (
-        <div className="glass-panel animate-fade-in">
-          <h2 className="mb-6">Performance Reports</h2>
-          <div className="grid gap-4" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
+        <div className="glass-panel animate-slide-up">
+          <h2 className="mb-8">Analytics & Reports</h2>
+          <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))' }}>
             {history.map(h => (
-              <div key={h._id} className="card hover-scale">
-                <div className="flex justify-between">
-                    <strong>{h.inputs.pickupLocation} → {h.inputs.dropLocation}</strong>
+              <div key={h._id} className="card">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <strong className="block text-lg">{h.inputs.pickupLocation} → {h.inputs.dropLocation}</strong>
+                      <span className="text-xs text-dim">{new Date(h.createdAt).toLocaleString()}</span>
+                    </div>
                     {h.results.driverScore !== undefined && (
                         <div className={`badge ${h.results.driverScore > 80 ? 'bg-success' : h.results.driverScore > 50 ? 'bg-warning' : 'bg-danger'}`}>
                             Score: {h.results.driverScore}
                         </div>
                     )}
                 </div>
-                <p className="text-xs text-muted mb-2">{new Date(h.createdAt).toLocaleDateString()}</p>
-                {h.results.violations?.map((v, i) => <p key={i} className="text-xs text-danger m-0">• {v}</p>)}
-                <button onClick={() => { setResult(h.results); setInputs(h.inputs); setShowHistory(false); setViewingHistoryItem(true); setSimBattery(parseFloat(h.inputs.batteryPercentage)); }} className="text-sm w-full mt-3">View Report</button>
+                <div className="mb-4">
+                  {h.results.violations?.length > 0 ? (
+                    h.results.violations.map((v, i) => <p key={i} className="text-xs text-danger m-0 mb-1">⚠️ {v}</p>)
+                  ) : (
+                    <p className="text-xs text-success m-0">✅ No violations recorded</p>
+                  )}
+                </div>
+                <button onClick={() => { setResult(h.results); setInputs(h.inputs); setShowHistory(false); setViewingHistoryItem(true); setSimBattery(parseFloat(h.inputs.batteryPercentage)); }} className="btn-secondary w-full text-sm">Review Detailed Report</button>
               </div>
             ))}
+            {history.length === 0 && <p className="text-center text-muted col-span-full py-12">No historical data available yet.</p>}
           </div>
         </div>
       ) : (
@@ -232,22 +249,52 @@ export default function Dashboard() {
               <InputForm onSubmit={handleOptimize} loading={loading} preFillModel={registeredVehicle?.model} preFillYear={registeredVehicle?.purchaseDate} preFillType={registeredVehicle?.vehicleType} />
             ) : (
               <div className="glass-panel">
-                <button onClick={() => setViewingHistoryItem(false)} className="btn-secondary mb-4 w-full">New Search</button>
-                <h3 className="m-0 text-gradient">{result.pickupLocation} → {result.dropLocation}</h3>
-                <div className="card mt-2">
-                    <p className="text-xs text-muted m-0">Load Weight</p>
-                    <p className={`font-bold m-0 ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-main'}`}>{inputs?.loadWeight} kg</p>
+                <button onClick={() => setViewingHistoryItem(false)} className="btn-secondary mb-6 w-full">Start New Optimization</button>
+                <div className="mb-6">
+                  <label className="text-xs">Active Route</label>
+                  <h3 className="m-0 accent-gradient text-xl">{inputs?.pickupLocation} to {inputs?.dropLocation}</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="card p-3">
+                      <label className="text-[10px]">Load Weight</label>
+                      <p className={`font-bold m-0 ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-main'}`}>{inputs?.loadWeight} kg</p>
+                  </div>
+                  <div className="card p-3">
+                      <label className="text-[10px]">Ambient Temp</label>
+                      <p className="font-bold m-0">{inputs?.temperature}°C</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {result && !result.rangeError && (
+              <div className="glass-panel">
+                <h3 className="mb-4 text-sm uppercase tracking-wider text-muted">Trip Summary</h3>
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between text-sm">
+                    <span>Estimated Distance</span>
+                    <span className="font-bold">{result.totalDistance?.toFixed(1)} km</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Stops Required</span>
+                    <span className="font-bold">{result.chargingStops?.length || 0}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Energy Required</span>
+                    <span className="font-bold">{(result.totalConsumption || 0).toFixed(1)} kWh</span>
+                  </div>
                 </div>
               </div>
             )}
           </aside>
 
           <main className="flex flex-col gap-6">
-            <div className="glass-panel p-0 overflow-hidden relative shadow-2xl" style={{ height: '500px' }}>
+            <div className="glass-panel p-0 overflow-hidden relative shadow-2xl" style={{ height: '600px' }}>
               <MapContainer center={mapCenter} zoom={zoom} className="leaflet-container">
                 <ChangeView center={mapCenter} zoom={zoom} bounds={mapBounds} />
                 <LayersControl position="topright">
-                  <BaseLayer checked name="Street"><TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /></BaseLayer>
+                  <BaseLayer checked name="Modern Street"><TileLayer url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png" /></BaseLayer>
+                  <BaseLayer name="Dark Matter"><TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" /></BaseLayer>
                   <BaseLayer name="Satellite"><TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" /></BaseLayer>
                 </LayersControl>
                 
@@ -255,7 +302,7 @@ export default function Dashboard() {
                   <>
                     <Marker position={[result.startCoords[1], result.startCoords[0]]} />
                     <Marker position={[result.endCoords[1], result.endCoords[0]]} />
-                    {result.geometry && <GeoJSON key={JSON.stringify(result.geometry)} data={result.geometry} style={{ color: '#3b82f6', weight: 6 }} />}
+                    {result.geometry && <GeoJSON key={JSON.stringify(result.geometry)} data={result.geometry} style={{ color: 'var(--primary)', weight: 6, opacity: 0.8 }} />}
                     {simActive && result.geometry.coordinates[simPosIndex] && (
                         <Marker position={[result.geometry.coordinates[simPosIndex][1], result.geometry.coordinates[simPosIndex][0]]} icon={L.icon({
                             iconUrl: 'https://cdn-icons-png.flaticon.com/512/3103/3103164.png',
@@ -263,24 +310,40 @@ export default function Dashboard() {
                             iconAnchor: [20, 20]
                         })} />
                     )}
+                    {result.chargingStops?.map((s, i) => (
+                      <Marker key={i} position={s.coords} icon={L.icon({
+                        iconUrl: 'https://cdn-icons-png.flaticon.com/512/3541/3541430.png',
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15]
+                      })}>
+                        <Popup>{s.name}</Popup>
+                      </Marker>
+                    ))}
                   </>
                 )}
               </MapContainer>
 
               {result && !result.rangeError && (
-                <div className="absolute bottom-6 left-6 right-6 z-[1000]">
+                <div className="absolute bottom-10 left-10 right-10 z-[2000]">
                   {!simActive ? (
-                    <button onClick={() => { setSimPosIndex(0); setSimDistance(0); setSimActive(true); setSimPaused(false); }} className="btn-primary py-3 w-full shadow-2xl">Start Simulation</button>
+                    <button onClick={() => { setSimPosIndex(0); setSimDistance(0); setSimActive(true); setSimPaused(false); }} className="py-5 w-full text-xl shadow-2xl animate-pulse-slow">
+                      🚀 Initialize Active Simulation
+                    </button>
                   ) : (
-                    <div className="glass-panel flex items-center gap-6 py-3 px-6 shadow-2xl border-white/20">
-                      <button onClick={() => setSimPaused(!simPaused)} className="text-xl">{simPaused ? '▶️' : '⏸️'}</button>
+                    <div className="glass-panel flex items-center gap-10 py-5 px-10 shadow-2xl border-white/20" style={{ borderRadius: 'var(--radius-lg)', background: 'rgba(15, 23, 42, 0.9)' }}>
+                      <button onClick={() => setSimPaused(!simPaused)} className="text-3xl p-0 bg-transparent shadow-none w-auto hover:scale-110 transition-transform">
+                        {simPaused ? '▶️' : '⏸️'}
+                      </button>
                       <div className="flex-1">
-                        <label className="text-xs text-muted">Speed: <span className="text-primary font-bold">{simSpeed} km/h</span></label>
-                        <input type="range" min="20" max="150" value={simSpeed} onChange={(e) => setSimSpeed(parseInt(e.target.value))} className="w-full" />
+                        <div className="flex justify-between mb-2">
+                          <label className="text-[10px] m-0 uppercase tracking-widest text-dim font-bold">Velocity Controller</label>
+                          <span className="text-primary font-bold text-sm bg-primary/10 px-2 rounded">{simSpeed} km/h</span>
+                        </div>
+                        <input type="range" min="20" max="150" value={simSpeed} onChange={(e) => setSimSpeed(parseInt(e.target.value))} className="w-full accent-primary" />
                       </div>
-                      <div className="border-l border-white/10 pl-6 text-right">
-                        <p className="text-[10px] text-muted m-0">Battery</p>
-                        <p className={`text-lg font-bold m-0 ${simBattery < 20 ? 'text-danger' : 'text-success'}`}>{simBattery.toFixed(0)}%</p>
+                      <div className="border-l border-white/10 pl-10 text-right min-w-[120px]">
+                        <label className="text-[10px] m-0 uppercase tracking-widest text-dim font-bold">Battery Charge</label>
+                        <p className={`text-3xl font-bold m-0 ${simBattery < 20 ? 'text-danger' : 'text-success'}`}>{simBattery.toFixed(0)}%</p>
                       </div>
                     </div>
                   )}
@@ -289,21 +352,21 @@ export default function Dashboard() {
             </div>
 
             {simActive && (
-              <div className="grid grid-cols-3 gap-4 animate-slide-up">
-                <div className="glass-panel text-center">
-                  <p className="text-xs text-muted mb-1">Distance</p>
-                  <p className="text-xl font-bold">{simDistance.toFixed(1)} km</p>
+              <div className="grid grid-cols-3 gap-6 animate-slide-up">
+                <div className="glass-panel text-center py-6">
+                  <label className="mb-2">Total Distance</label>
+                  <p className="text-3xl font-bold m-0">{simDistance.toFixed(1)} <span className="text-sm font-normal text-muted">km</span></p>
                 </div>
-                <div className="glass-panel text-center">
-                  <p className="text-xs text-muted mb-1">Load Status</p>
-                  <p className={`text-xl font-bold ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-success'}`}>
-                    {parseFloat(inputs?.loadWeight) > 6000 ? 'OVERLOAD' : 'NORMAL'}
+                <div className="glass-panel text-center py-6">
+                  <label className="mb-2">System Load</label>
+                  <p className={`text-2xl font-bold m-0 ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-success'}`}>
+                    {parseFloat(inputs?.loadWeight) > 6000 ? 'OVERLOAD' : 'OPTIMAL'}
                   </p>
                 </div>
-                <div className="glass-panel text-center">
-                  <p className="text-xs text-muted mb-1">Consumption Rate</p>
-                  <p className={`text-xl font-bold ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-main'}`}>
-                    {((parseFloat(inputs?.loadWeight)/1000) * 0.1 + (parseFloat(inputs?.loadWeight) > 6000 ? 0.4 : 0)).toFixed(1)}x <span className="text-xs font-normal text-muted">base</span>
+                <div className="glass-panel text-center py-6">
+                  <label className="mb-2">Efficiency Multiplier</label>
+                  <p className={`text-3xl font-bold m-0 ${parseFloat(inputs?.loadWeight) > 6000 ? 'text-danger' : 'text-main'}`}>
+                    {((parseFloat(inputs?.loadWeight)/1000) * 0.1 + (parseFloat(inputs?.loadWeight) > 6000 ? 0.4 : 0) + 1).toFixed(1)}<span className="text-sm font-normal text-muted">x</span>
                   </p>
                 </div>
               </div>
@@ -313,28 +376,28 @@ export default function Dashboard() {
       )}
 
       {showBreakModal && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-md">
-          <div className="glass-panel p-8 max-w-sm text-center border-primary">
-            <h1 className="text-4xl mb-4">☕</h1>
-            <h2 className="text-primary text-2xl">Safety Break</h2>
-            <p className="text-muted mb-8">Driven 100km. Time for a rest stop.</p>
-            <div className="flex flex-col gap-3">
-              <button onClick={() => { setBreaksTaken(p=>p+1); setShowBreakModal(false); setSimPaused(false); }} className="btn-primary w-full py-4">Take Break</button>
-              <button onClick={() => { setBreaksSkipped(p=>p+1); setShowBreakModal(false); setSimPaused(false); }} className="btn-secondary w-full">Skip (Safety Penalty)</button>
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-bg-deep/80 backdrop-blur-xl">
+          <div className="glass-panel p-10 max-w-md text-center border-primary shadow-2xl">
+            <div className="text-6xl mb-6">☕</div>
+            <h2 className="text-primary text-3xl mb-2">Mandatory Break</h2>
+            <p className="text-muted mb-10">You've covered 100km. Federal safety regulations require a 15-minute rest stop.</p>
+            <div className="flex flex-col gap-4">
+              <button onClick={() => { setBreaksTaken(p=>p+1); setShowBreakModal(false); setSimPaused(false); }} className="py-4 text-lg">Acknowledge & Rest</button>
+              <button onClick={() => { setBreaksSkipped(p=>p+1); setShowBreakModal(false); setSimPaused(false); }} className="btn-secondary py-3 text-danger">Skip (Security Flagged)</button>
             </div>
           </div>
         </div>
       )}
 
       {showChargeModal && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/80 backdrop-blur-md">
-          <div className="glass-panel p-8 max-w-sm text-center border-success">
-            <h1 className="text-4xl mb-4">⚡</h1>
-            <h2 className="text-success text-2xl">Charging Station</h2>
-            <p className="text-muted mb-8">Arrived at <strong>{nearbyStation?.name}</strong>.</p>
-            <div className="flex gap-3">
-              <button onClick={() => { setSimBattery(100); setShowChargeModal(false); setSimPaused(false); }} className="btn-primary flex-1">Charge</button>
-              <button onClick={() => { setShowChargeModal(false); setSimPaused(false); }} className="btn-secondary flex-1">Skip</button>
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-bg-deep/80 backdrop-blur-xl">
+          <div className="glass-panel p-10 max-w-md text-center border-success shadow-2xl">
+            <div className="text-6xl mb-6">⚡</div>
+            <h2 className="text-success text-3xl mb-2">Charging Point</h2>
+            <p className="text-muted mb-10">Proximity alert: <strong>{nearbyStation?.name}</strong> is within range. Would you like to top up?</p>
+            <div className="flex gap-4">
+              <button onClick={() => { setSimBattery(100); setShowChargeModal(false); setSimPaused(false); }} className="flex-1 py-4">Fast Charge</button>
+              <button onClick={() => { setShowChargeModal(false); setSimPaused(false); }} className="btn-secondary flex-1 py-4">Continue Trip</button>
             </div>
           </div>
         </div>

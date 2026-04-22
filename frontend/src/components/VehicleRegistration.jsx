@@ -52,59 +52,76 @@ export default function VehicleRegistration({ onUpdate }) {
   }
 
   return (
-    <div className="glass-panel mb-6">
-      <h2 className="text-gradient">Register Your Truck</h2>
-      <p className="text-muted text-sm mb-4">Save your vehicle details to get faster optimizations.</p>
+    <div className="glass-panel mb-8 animate-slide-up">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="bg-secondary-glow p-2 rounded-lg text-xl">🚛</div>
+        <div>
+          <h2 className="m-0 text-xl accent-gradient">Vehicle Profile</h2>
+          <p className="text-muted text-xs">Configure your primary vehicle for faster route calculations.</p>
+        </div>
+      </div>
       
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-muted mb-2 block">Vehicle Model</label>
-          <input 
-            name="model" 
-            value={vehicle.model} 
-            onChange={handleChange} 
-            required 
-            placeholder="e.g. Tata Ace EV" 
-          />
+      <form onSubmit={handleSubmit} className="flex flex-col gap-2 mt-6">
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label>Model Name</label>
+            <input 
+              name="model" 
+              value={vehicle.model} 
+              onChange={handleChange} 
+              required 
+              placeholder="e.g. Tata Ace EV" 
+            />
+          </div>
+
+          <div>
+            <label>Purchase Date</label>
+            <input 
+              name="purchaseDate" 
+              type="month" 
+              value={vehicle.purchaseDate} 
+              onChange={handleChange} 
+              required 
+            />
+          </div>
         </div>
 
-        <div>
-          <label className="text-muted mb-2 block">Purchase Year & Month</label>
-          <input 
-            name="purchaseDate" 
-            type="month" 
-            value={vehicle.purchaseDate} 
-            onChange={handleChange} 
-            required 
-          />
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <label>Battery Capacity (kWh)</label>
+            <input 
+              name="batteryCapacity" 
+              type="number" 
+              value={vehicle.batteryCapacity} 
+              onChange={handleChange} 
+              required 
+              placeholder="e.g. 145" 
+            />
+          </div>
+
+          <div>
+            <label>Vehicle Category</label>
+            <select name="vehicleType" value={vehicle.vehicleType} onChange={handleChange}>
+              <option value="Van">Electric Van</option>
+              <option value="Truck">Electric Truck</option>
+              <option value="Car">Electric Car</option>
+            </select>
+          </div>
         </div>
 
-        <div>
-          <label className="text-muted mb-2 block">Battery Capacity (kWh)</label>
-          <input 
-            name="batteryCapacity" 
-            type="number" 
-            value={vehicle.batteryCapacity} 
-            onChange={handleChange} 
-            required 
-            placeholder="e.g. 145" 
-          />
-        </div>
-
-        <div>
-          <label className="text-muted mb-2 block">Vehicle Type</label>
-          <select name="vehicleType" value={vehicle.vehicleType} onChange={handleChange}>
-            <option value="Van">Electric Van</option>
-            <option value="Truck">Electric Truck</option>
-            <option value="Car">Electric Car</option>
-          </select>
-        </div>
-
-        <div style={{ gridColumn: 'span 2' }}>
-          <button type="submit" disabled={loading}>
-            {loading ? 'Saving...' : 'Save Vehicle Details'}
+        <div className="mt-4">
+          <button type="submit" disabled={loading} className="w-full py-4">
+            {loading ? (
+              <span className="animate-pulse">Saving Profile...</span>
+            ) : (
+              'Save Configuration'
+            )}
           </button>
-          {message && <p className={`mt-2 text-sm ${message.includes('success') ? 'text-success' : 'text-danger'}`}>{message}</p>}
+          {message && (
+            <p className={`mt-3 text-center text-sm font-medium ${message.includes('success') ? 'text-success' : 'text-danger'}`}>
+              {message.includes('success') ? '✅ ' : '❌ '} {message}
+            </p>
+          )}
         </div>
       </form>
     </div>
