@@ -15,9 +15,9 @@ dotenv.config();
 // Connect to MongoDB
 connectDB();
 
-// --- DATA DRIVEN LOGIC FROM CSV ---
+
 let fleetData = [];
-let modelEfficiencies = {}; // Store avg energy consumption per km for each model
+let modelEfficiencies = {}; 
 
 const loadDataset = () => {
     const results = [];
@@ -35,7 +35,7 @@ const loadDataset = () => {
             fleetData = results;
             console.log(`✅ Loaded ${fleetData.length} records from dataset.`);
             
-            // Calculate average efficiency for each vehicle model
+            
             const models = {};
             fleetData.forEach(row => {
                 const model = row['Vehicle Model'];
@@ -64,7 +64,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// JWT Middleware
+
 const protect = async (req, res, next) => {
   let token;
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -89,7 +89,7 @@ const protect = async (req, res, next) => {
   }
 };
 
-// Register User
+
 app.post('/api/auth/register', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -104,7 +104,6 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Login User
 app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
   try {
@@ -120,7 +119,7 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-// Helper function to get coordinates from OpenRouteService Geocoding
+
 async function getCoordinates(city) {
   const url = `https://api.openrouteservice.org/geocode/search?api_key=${process.env.OPENROUTESERVICE_API_KEY}&text=${encodeURIComponent(city)}`;
   const response = await axios.get(url);
