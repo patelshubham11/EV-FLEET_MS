@@ -62,7 +62,8 @@ export default function Dashboard({ token, onLogout }) {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await axios.get('http://localhost:5000/api/user/profile', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const res = await axios.get(`${API_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.data.vehicleDetails) setRegisteredVehicle(res.data.vehicleDetails)
@@ -75,7 +76,8 @@ export default function Dashboard({ token, onLogout }) {
     if (showHistory) {
       const fetchHistory = async () => {
         try {
-          const res = await axios.get('http://localhost:5000/api/history', {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+          const res = await axios.get(`${API_URL}/api/history`, {
             headers: { Authorization: `Bearer ${token}` }
           })
           setHistory(res.data)
@@ -167,7 +169,8 @@ export default function Dashboard({ token, onLogout }) {
     
     if (result.historyId) {
         try {
-            await axios.patch(`http://localhost:5000/api/history/${result.historyId}`, {
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            await axios.patch(`${API_URL}/api/history/${result.historyId}`, {
                 driverScore: score.toFixed(0),
                 violations: finalViolations,
                 performanceTips: tips
@@ -183,7 +186,8 @@ export default function Dashboard({ token, onLogout }) {
     setViolations([]); setOverspeedingCount(0); setBreaksTaken(0); setBreaksSkipped(0); setLastBreakDist(0);
     try {
       console.log("Optimizing route with token:", token ? token.substring(0, 10) + "..." : "NULL/UNDEFINED");
-      const res = await axios.post('http://localhost:5000/api/optimize', formData, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await axios.post(`${API_URL}/api/optimize`, formData, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setResult(res.data);

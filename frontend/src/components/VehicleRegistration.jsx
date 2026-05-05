@@ -15,7 +15,8 @@ export default function VehicleRegistration({ onUpdate }) {
     const fetchProfile = async () => {
       const token = localStorage.getItem('token')
       try {
-        const res = await axios.get('http://localhost:5000/api/user/profile', {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+        const res = await axios.get(`${API_URL}/api/user/profile`, {
           headers: { Authorization: `Bearer ${token}` }
         })
         if (res.data.vehicleDetails) {
@@ -38,7 +39,8 @@ export default function VehicleRegistration({ onUpdate }) {
     setMessage('')
     const token = localStorage.getItem('token')
     try {
-      const res = await axios.post('http://localhost:5000/api/user/vehicle', vehicle, {
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const res = await axios.post(`${API_URL}/api/user/vehicle`, vehicle, {
         headers: { Authorization: `Bearer ${token}` }
       })
       setMessage('Vehicle details saved successfully!')
